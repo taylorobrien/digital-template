@@ -19,18 +19,28 @@ window.onload = function() {
         // Load an image and call it 'logo'.
         game.load.image( 'logo', 'assets/phaser.png' );
 		game.load.image('background','assets/graveyard.jpg');
+		game.load.image('guy','assets/purpleguy.png');
+		game.load.image('girl','assets/purplegirl.jpg');
     }
     
     var bouncy;
+	var bg;
     
     function create() {
+		game.physics.startSystem(Phaser.Physics.ARCADE);
 		//Create Background
-		game.add.sprite(ORIGIN, ORIGIN, 'background');
+		//game.add.sprite(0, 0,'background');
+		bg = game.add.tileSprite(0, 0, 1800, 1600, 'background');
+		bg.scale.set(5,5);
+
         // Create a sprite at the center of the screen using the 'logo' image.
-        bouncy = game.add.sprite( game.world.centerX, game.world.centerY, 'logo' );
+        bouncy = game.add.sprite( game.world.centerX, game.world.centerY, 'guy' );
+		bouncy.scale.set(.35 , .35 );
         // Anchor the sprite at its center, as opposed to its top-left corner.
         // so it will be truly centered.
         bouncy.anchor.setTo( 0.5, 0.5 );
+		game.camera.follow(bouncy);
+		//bouncy.fixedToCamera = true;
         
         // Turn on the arcade physics engine for this sprite.
         game.physics.enable( bouncy, Phaser.Physics.ARCADE );
@@ -40,7 +50,7 @@ window.onload = function() {
         // Add some text using a CSS style.
         // Center it in X, and position its top 15 pixels from the top of the world.
         var style = { font: "25px Verdana", fill: "#9999ff", align: "center" };
-        var text = game.add.text( game.world.centerX, 15, "Build something awesome.", style );
+        var text = game.add.text( game.world.centerX, 15, "Dying Roses", style );
         text.anchor.setTo( 0.5, 0.0 );
     }
     
@@ -50,6 +60,22 @@ window.onload = function() {
         // in X or Y.
         // This function returns the rotation angle that makes it visually match its
         // new trajectory.
-        bouncy.rotation = game.physics.arcade.accelerateToPointer( bouncy, this.game.input.activePointer, 500, 500, 500 );
+		if (game.physics.arcade.distanceToPointer(bouncy, game.input.activePointer) > 8)
+    {
+        //  Make the object seek to the active pointer (mouse or touch).
+        game.physics.arcade.moveToPointer(bouncy, 300);
+    }
+    else
+    {
+        //  Otherwise turn off velocity because we're close enough to the pointer
+        bouncy.body.velocity.set(0);
+    }
+        //bouncy.rotation = game.physics.arcade.accelerateToPointer( bouncy, this.game.input.activePointer, 500, 500, 500 );
     }
 };
+
+
+
+//http://rickr-d.com/wp-content/uploads/2011/10/246_Cartoon_Purple_Alien_Citizen_Guy_who_likes_Advanced_Technology.jpg
+//http://th00.deviantart.net/fs70/PRE/f/2010/157/7/0/Graveyard_by_theLastSamu.jpg
+//http://premiumpsd.com/wp-content/uploads/2010/11/cartoon-doll-design_full.jpg
