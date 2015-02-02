@@ -19,63 +19,102 @@ window.onload = function() {
         // Load an image and call it 'logo'.
         game.load.image( 'logo', 'assets/phaser.png' );
 		game.load.image('background','assets/graveyard.jpg');
-		game.load.image('guy','assets/purpleguy.png');
+		game.load.image('dude','assets/purpleguy.png');
 		game.load.image('girl','assets/purplegirl.jpg');
     }
     
-    var bouncy;
-	var bg;
-    
-    function create() {
-		game.physics.startSystem(Phaser.Physics.ARCADE);
-		//Create Background
-		//game.add.sprite(0, 0,'background');
-		bg = game.add.tileSprite(0, 0, 1800, 1600, 'background');
-		bg.scale.set(5,5);
+    var player;
+var facing = 'left';
+var jumpTimer = 0;
+var cursors;
+var jumpButton;
+var bg;
 
-        // Create a sprite at the center of the screen using the 'logo' image.
-        bouncy = game.add.sprite( game.world.centerX, game.world.centerY, 'guy' );
-		bouncy.scale.set(.35 , .35 );
-        // Anchor the sprite at its center, as opposed to its top-left corner.
-        // so it will be truly centered.
-        bouncy.anchor.setTo( 0.5, 0.5 );
-		game.camera.follow(bouncy);
-		//bouncy.fixedToCamera = true;
-        
-        // Turn on the arcade physics engine for this sprite.
-        game.physics.enable( bouncy, Phaser.Physics.ARCADE );
-        // Make it bounce off of the world bounds.
-        bouncy.body.collideWorldBounds = true;
-        
-        // Add some text using a CSS style.
-        // Center it in X, and position its top 15 pixels from the top of the world.
-        var style = { font: "25px Verdana", fill: "#9999ff", align: "center" };
-        var text = game.add.text( game.world.centerX, 15, "Dying Roses", style );
-        text.anchor.setTo( 0.5, 0.0 );
-    }
-    
-    function update() {
-        // Accelerate the 'logo' sprite towards the cursor,
-        // accelerating at 500 pixels/second and moving no faster than 500 pixels/second
-        // in X or Y.
-        // This function returns the rotation angle that makes it visually match its
-        // new trajectory.
-		if (game.physics.arcade.distanceToPointer(bouncy, game.input.activePointer) > 8)
+function create() {
+	
+	
+
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    game.time.desiredFps = 30;
+
+    bg = game.add.tileSprite(0, 0, 800, 600, 'background');
+
+    game.physics.arcade.gravity.y = 250;
+
+    player = game.add.sprite(32, 32, 'dude');
+	game.camera.follow(player);
+    game.physics.enable(player, Phaser.Physics.ARCADE);
+
+    player.body.bounce.y = 0.2;
+    player.body.collideWorldBounds = true;
+    player.body.setSize(20, 32, 5, 16);
+
+    player.animations.add('left', [0, 1, 2, 3], 10, true);
+    player.animations.add('turn', [4], 20, true);
+    player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+    cursors = game.input.keyboard.createCursorKeys();
+    jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+}
+
+function update() {
+
+    // game.physics.arcade.collide(player, layer);
+
+    player.body.velocity.x = 0;
+
+    if (cursors.left.isDown)
     {
-        //  Make the object seek to the active pointer (mouse or touch).
-        game.physics.arcade.moveToPointer(bouncy, 300);
+        player.body.velocity.x = -150;
+
+        if (facing != 'left')
+        {
+            player.animations.play('left');
+            facing = 'left';
+        }
+    }
+    else if (cursors.right.isDown)
+    {
+        player.body.velocity.x = 150;
+
+        if (facing != 'right')
+        {
+            player.animations.play('right');
+            facing = 'right';
+        }
     }
     else
     {
-        //  Otherwise turn off velocity because we're close enough to the pointer
-        bouncy.body.velocity.set(0);
+        if (facing != 'idle')
+        {
+            player.animations.stop();
+
+            if (facing == 'left')
+            {
+                player.frame = 0;
+            }
+            else
+            {
+                player.frame = 5;
+            }
+
+            facing = 'idle';
+        }
     }
-        //bouncy.rotation = game.physics.arcade.accelerateToPointer( bouncy, this.game.input.activePointer, 500, 500, 500 );
+    
+    if (jumpButton.isDown && player.body.onFloor() && game.time.now > jumpTimer)
+    {
+        player.body.velocity.y = -250;
+        jumpTimer = game.time.now + 750;
     }
-};
+
+}
 
 
 
+}
 //http://rickr-d.com/wp-content/uploads/2011/10/246_Cartoon_Purple_Alien_Citizen_Guy_who_likes_Advanced_Technology.jpg
 //http://th00.deviantart.net/fs70/PRE/f/2010/157/7/0/Graveyard_by_theLastSamu.jpg
 //http://premiumpsd.com/wp-content/uploads/2010/11/cartoon-doll-design_full.jpg
