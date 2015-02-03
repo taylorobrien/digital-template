@@ -13,116 +13,69 @@ window.onload = function() {
     
     "use strict";
     
-    var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
- 
+    var game = new Phaser.Game( 800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update } );
+    
     function preload() {
         // Load an image and call it 'logo'.
-        game.load.image( 'star', 'assets/phaser.png' );
-		//game.load.image('background','assets/graveyard.jpg');
-		game.load.image('player','assets/purpleguy.png');
-		game.load.image('girl','aassets/purplegirl.jpg');
-		game.load.image('ground','assets/bars.png');
+        game.load.image( 'logo', 'assets/phaser.png' );
+		game.load.image('background','assets/graveyard.jpg');
+		game.load.image('guy','assets/purpleguy.png');
+		game.load.image('girl','assets/purplegirl.jpg');
     }
     
-var player;
-var facing = 'left';
-var jumpTimer = 0;
-var cursors;
-var jumpButton;
-var bg;
-var platforms;
-
-function create() {
-
-    //  We're going to be using physics, so enable the Arcade Physics system
-    //game.physics.startSystem(Phaser.Physics.ARCADE);
-
-    //  A simple background for our game
-    game.add.sprite(0, 0, 'sky');
-
-    //  The platforms group contains the ground and the 2 ledges we can jump on
-    platforms = game.add.group();
-
-    //  We will enable physics for any object that is created in this group
-    platforms.enableBody = true;
-
-    // Here we create the ground.
-    var ground = platforms.create(0, game.world.height - 64, 'ground');
-
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    ground.scale.setTo(2, 2);
-
-    //  This stops it from falling away when you jump on it
-    ground.body.immovable = true;
-
-    //  Now let's create two ledges
-    var ledge = platforms.create(400, 400, 'ground');
-
-    ledge.body.immovable = true;
-
-    ledge = platforms.create(-150, 250, 'ground');
-
-    ledge.body.immovable = true;
-	
-	platforms = game.add.group();
-	
-    // The player and its settings
-    player = game.add.sprite(32, game.world.height - 150, 'dude');
- 
-    //  We need to enable physics on the player
-    game.physics.arcade.enable(player);
- 
-    //  Player physics properties. Give the little guy a slight bounce.
-    player.body.bounce.y = 0.2;
-    player.body.gravity.y = 300;
-    player.body.collideWorldBounds = true;
- 
-    //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
-	player.body.gravity.y = 300;
+    var bouncy;
+	var bg;
     
-}
+    function create() {
+		game.physics.startSystem(Phaser.Physics.ARCADE);
+		//Create Background
+		//game.add.sprite(0, 0,'background');
+		bg = game.add.tileSprite(0, 0, 1800, 1600, 'background');
+		bg.scale.set(5,5);
 
-function update() {
-	
-	 game.physics.arcade.collide(player, platforms);
-	 
-    //  Reset the players velocity (movement)
-    player.body.velocity.x = 0;
- 
-    if (cursors.left.isDown)
-    {
-        //  Move to the left
-        player.body.velocity.x = -150;
- 
-        player.animations.play('left');
+        // Create a sprite at the center of the screen using the 'logo' image.
+        bouncy = game.add.sprite( game.world.centerX, game.world.centerY, 'guy' );
+		bouncy.scale.set(.35 , .35 );
+        // Anchor the sprite at its center, as opposed to its top-left corner.
+        // so it will be truly centered.
+        bouncy.anchor.setTo( 0.5, 0.5 );
+		game.camera.follow(bouncy);
+		//bouncy.fixedToCamera = true;
+        
+        // Turn on the arcade physics engine for this sprite.
+        game.physics.enable( bouncy, Phaser.Physics.ARCADE );
+        // Make it bounce off of the world bounds.
+        bouncy.body.collideWorldBounds = true;
+        
+        // Add some text using a CSS style.
+        // Center it in X, and position its top 15 pixels from the top of the world.
+        var style = { font: "25px Verdana", fill: "#9999ff", align: "center" };
+        var text = game.add.text( game.world.centerX, 15, "Dying Roses", style );
+        text.anchor.setTo( 0.5, 0.0 );
     }
-    else if (cursors.right.isDown)
+    
+    function update() {
+        // Accelerate the 'logo' sprite towards the cursor,
+        // accelerating at 500 pixels/second and moving no faster than 500 pixels/second
+        // in X or Y.
+        // This function returns the rotation angle that makes it visually match its
+        // new trajectory.
+		if (game.physics.arcade.distanceToPointer(bouncy, game.input.activePointer) > 8)
     {
-        //  Move to the right
-        player.body.velocity.x = 150;
- 
-        player.animations.play('right');
+        //  Make the object seek to the active pointer (mouse or touch).
+        game.physics.arcade.moveToPointer(bouncy, 300);
     }
     else
     {
-        //  Stand still
-        player.animations.stop();
- 
-        player.frame = 4;
+        //  Otherwise turn off velocity because we're close enough to the pointer
+        bouncy.body.velocity.set(0);
     }
-    
-    //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down)
-    {
-        player.body.velocity.y = -350;
+        //bouncy.rotation = game.physics.arcade.accelerateToPointer( bouncy, this.game.input.activePointer, 500, 500, 500 );
     }
+};
 
-}
 
 
-}
 //http://rickr-d.com/wp-content/uploads/2011/10/246_Cartoon_Purple_Alien_Citizen_Guy_who_likes_Advanced_Technology.jpg
 //http://th00.deviantart.net/fs70/PRE/f/2010/157/7/0/Graveyard_by_theLastSamu.jpg
 //http://premiumpsd.com/wp-content/uploads/2010/11/cartoon-doll-design_full.jpg
