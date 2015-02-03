@@ -13,105 +13,113 @@ window.onload = function() {
     
     "use strict";
     
-    var game = new Phaser.Game( 800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update } );
-    
+    var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+ 
     function preload() {
         // Load an image and call it 'logo'.
-        game.load.image( 'logo', 'assets/phaser.png' );
-		game.load.image('background','assets/graveyard.jpg');
-		game.load.image('dude','assets/purpleguy.png');
-		game.load.image('girl','assets/purplegirl.jpg');
+        game.load.image( 'star', 'assets/phaser.png' );
+		//game.load.image('background','assets/graveyard.jpg');
+		game.load.image('player','assets/purpleguy.png');
+		game.load.image('girl','aassets/purplegirl.jpg');
+		game.load.image('ground','assets/bars.png');
     }
     
-    var player;
+var player;
 var facing = 'left';
 var jumpTimer = 0;
 var cursors;
 var jumpButton;
 var bg;
+var platforms;
 
 function create() {
+
+    //  We're going to be using physics, so enable the Arcade Physics system
+    //game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    //  A simple background for our game
+    game.add.sprite(0, 0, 'sky');
+
+    //  The platforms group contains the ground and the 2 ledges we can jump on
+    platforms = game.add.group();
+
+    //  We will enable physics for any object that is created in this group
+    platforms.enableBody = true;
+
+    // Here we create the ground.
+    var ground = platforms.create(0, game.world.height - 64, 'ground');
+
+    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    ground.scale.setTo(2, 2);
+
+    //  This stops it from falling away when you jump on it
+    ground.body.immovable = true;
+
+    //  Now let's create two ledges
+    var ledge = platforms.create(400, 400, 'ground');
+
+    ledge.body.immovable = true;
+
+    ledge = platforms.create(-150, 250, 'ground');
+
+    ledge.body.immovable = true;
 	
+	platforms = game.add.group();
 	
-
-    game.physics.startSystem(Phaser.Physics.ARCADE);
-
-    game.time.desiredFps = 30;
-
-    bg = game.add.tileSprite(0, 0, 800, 600, 'background');
-
-    game.physics.arcade.gravity.y = 250;
-
-    player = game.add.sprite(32, 32, 'dude');
-	game.camera.follow(player);
-    game.physics.enable(player, Phaser.Physics.ARCADE);
-
+    // The player and its settings
+    player = game.add.sprite(32, game.world.height - 150, 'dude');
+ 
+    //  We need to enable physics on the player
+    game.physics.arcade.enable(player);
+ 
+    //  Player physics properties. Give the little guy a slight bounce.
     player.body.bounce.y = 0.2;
+    player.body.gravity.y = 300;
     player.body.collideWorldBounds = true;
-    player.body.setSize(20, 32, 5, 16);
-
+ 
+    //  Our two animations, walking left and right.
     player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('turn', [4], 20, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
-
-    cursors = game.input.keyboard.createCursorKeys();
-    jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
+	player.body.gravity.y = 300;
+    
 }
 
 function update() {
-
-    // game.physics.arcade.collide(player, layer);
-
+	
+	 game.physics.arcade.collide(player, platforms);
+	 
+    //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
-
+ 
     if (cursors.left.isDown)
     {
+        //  Move to the left
         player.body.velocity.x = -150;
-
-        if (facing != 'left')
-        {
-            player.animations.play('left');
-            facing = 'left';
-        }
+ 
+        player.animations.play('left');
     }
     else if (cursors.right.isDown)
     {
+        //  Move to the right
         player.body.velocity.x = 150;
-
-        if (facing != 'right')
-        {
-            player.animations.play('right');
-            facing = 'right';
-        }
+ 
+        player.animations.play('right');
     }
     else
     {
-        if (facing != 'idle')
-        {
-            player.animations.stop();
-
-            if (facing == 'left')
-            {
-                player.frame = 0;
-            }
-            else
-            {
-                player.frame = 5;
-            }
-
-            facing = 'idle';
-        }
+        //  Stand still
+        player.animations.stop();
+ 
+        player.frame = 4;
     }
     
-    if (jumpButton.isDown && player.body.onFloor() && game.time.now > jumpTimer)
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down)
     {
-        player.body.velocity.y = -250;
-        jumpTimer = game.time.now + 750;
+        player.body.velocity.y = -350;
     }
 
 }
-
 
 
 }
