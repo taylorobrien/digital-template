@@ -21,39 +21,88 @@ window.onload = function() {
 		game.load.image('background','assets/graveyard.jpg');
 		game.load.image('guy','assets/purpleguy.png');
 		game.load.image('girl','assets/purplegirl.jpg');
+		game.load.image('rose','assets/rose.png');
+		game.load.audio('song',['assets/BlackedOutLove.mp3','assets/BlackedOutLove.ogg']);
     }
     
-    var bouncy;
+    var player;
 	var bg;
+	var roses;
+	var cursors;
+	var music;
     
     function create() {
 		game.physics.startSystem(Phaser.Physics.ARCADE);
+		//game.add.sprite(0,0,'rose');
 		//Create Background
 		//game.add.sprite(0, 0,'background');
 		bg = game.add.tileSprite(0, 0, 1800, 1600, 'background');
-		bg.scale.set(5,5);
-
+		game.input.touch.preventDefault = false;
+		//bg.scale.set(5,5);
         // Create a sprite at the center of the screen using the 'logo' image.
-        bouncy = game.add.sprite( game.world.centerX, game.world.centerY, 'guy' );
-		bouncy.scale.set(.35 , .35 );
+        music = game.add.audio('song');
+		//music.override = true;
+		//music.autoplay = true;
+		music.play();
+		player = game.add.sprite( game.world.centerX, 500, 'guy' );
+		player.scale.set(.35 , .35 );
+		
         // Anchor the sprite at its center, as opposed to its top-left corner.
         // so it will be truly centered.
-        bouncy.anchor.setTo( 0.5, 0.5 );
-		game.camera.follow(bouncy);
+        //player.anchor.setTo( 0.5, 0.5 );
+		//game.camera.follow(player);
 		//bouncy.fixedToCamera = true;
         
         // Turn on the arcade physics engine for this sprite.
-        game.physics.enable( bouncy, Phaser.Physics.ARCADE );
+        game.physics.enable( player, Phaser.Physics.ARCADE );
         // Make it bounce off of the world bounds.
-        bouncy.body.collideWorldBounds = true;
-        
+        player.body.collideWorldBounds = true;
+		
+		roses = game.add.group();
+		roses.scale.set(.2,.2);
+		roses.enableBody = true;
+		
+		//roses.createMultiple(250, 'rose', 0, false);
+		        
         // Add some text using a CSS style.
         // Center it in X, and position its top 15 pixels from the top of the world.
         var style = { font: "25px Verdana", fill: "#9999ff", align: "center" };
         var text = game.add.text( game.world.centerX, 15, "Falling Roses", style );
         text.anchor.setTo( 0.5, 0.0 );
-		game.physics.arcade.gravity.y=1000000;
+		game.physics.arcade.gravity.y=160;
+		player.body.gravity.y = 1000000;
+		cursors = game.input.keyboard.createCursorKeys();
+		game.time.events.loop(1, falling, this);
     }
+	
+	function falling() {
+
+    for (var i = 0; i < 1; i++)
+    {
+        var s = roses.create(game.world.randomX, game.world.randomY, 'rose');
+        s.name = 'rose' + s;
+        //body.collideWorldBounds = true;
+        s.body.bounce.setTo(1800, 1600);
+        //s.body.velocity.setTo(10);
+		s.body.gravity.x = (10 + Math.random() * 500);
+    }
+
+    /*//var fallrose = roses.getFirstExists(false);
+
+    //if (fallrose)
+    //{
+        //fallrose.frame = game.rnd.integerInRange(0,6);
+		rosey = game.add.sprite(0,0,'rose');
+		rosey.body.gravity.y = 100;
+	
+        fallrose.exists = true;
+        //fallrose.reset(game.world.randomX, 0);
+
+        fallrose.body.bounce.y = 0.8;
+    //}*/
+
+}
+
     
     function update() {
         // Accelerate the 'logo' sprite towards the cursor,
@@ -61,16 +110,17 @@ window.onload = function() {
         // in X or Y.
         // This function returns the rotation angle that makes it visually match its
         // new trajectory.
-		if (game.physics.arcade.distanceToPointer(bouncy, game.input.activePointer) > 8)
+		//game.physics.arcade.collide(player, roses, null, reflect, this);
+		player.body.velocity.x = 0;
+		if (cursors.left.isDown)
     {
-        //  Make the object seek to the active pointer (mouse or touch).
-        game.physics.arcade.moveToPointer(bouncy, 300);
+        player.body.velocity.x = -200;
     }
-    else
+    else if (cursors.right.isDown)
     {
-        //  Otherwise turn off velocity because we're close enough to the pointer
-        bouncy.body.velocity.set(0);
+        player.body.velocity.x = 200;
     }
+
         //bouncy.rotation = game.physics.arcade.accelerateToPointer( bouncy, this.game.input.activePointer, 500, 500, 500 );
     }
 };
@@ -80,3 +130,5 @@ window.onload = function() {
 //http://rickr-d.com/wp-content/uploads/2011/10/246_Cartoon_Purple_Alien_Citizen_Guy_who_likes_Advanced_Technology.jpg
 //http://th00.deviantart.net/fs70/PRE/f/2010/157/7/0/Graveyard_by_theLastSamu.jpg
 //http://premiumpsd.com/wp-content/uploads/2010/11/cartoon-doll-design_full.jpg
+//http://pngimg.com/upload/rose_PNG649.png
+//http://www.newgrounds.com/audio/listen/560586
